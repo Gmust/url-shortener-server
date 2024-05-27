@@ -18,6 +18,12 @@ export class Url {
 
   @Prop({ required: true, default: 0 })
   clicks: number;
+
+  @Prop({ required: false })
+  expiresIn: string;
+
+  @Prop({ required: false })
+  maxClicks: number;
 }
 
 export const UrlSchema = SchemaFactory.createForClass(Url);

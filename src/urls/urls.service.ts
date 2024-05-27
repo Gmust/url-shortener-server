@@ -5,6 +5,7 @@ import { nanoid } from 'nanoid';
 
 import { Url } from '../schemas/url.schema';
 import { validateOriginalUrl } from '../utils/validateOriginalUrl';
+import { CreateCustomUrlDto } from './dto/create-custom-url.dto';
 import { ShortenUrlDto } from './dto/shorten-url.dto';
 
 @Injectable()
@@ -21,17 +22,13 @@ export class UrlsService {
       });
     }
 
-    let url;
-    url = await this.urlModel.findOne({ originalUrl });
+    const dbUrl = await this.urlModel.findOne({ originalUrl });
 
-    if (url) {
-      return url;
+    if (dbUrl) {
+      return dbUrl;
     } else {
-
-      const urlId = nanoid();
-
-      const shortenedUrl = `${process.env.BASE_URL}/${urlId}`;
-      url = await this.urlModel.create({
+      const { urlId, shortenedUrl } = await this.generateShortenedUrl(originalUrl);
+      const url = await this.urlModel.create({
         originalUrl: originalUrl,
         shortUrl: shortenedUrl,
         urlId,
@@ -42,6 +39,62 @@ export class UrlsService {
         message: 'Url successfully shortened',
       };
     }
+  }
+
+  public async createCustomUrl({ originalUrl, customName, maxClicks, expiresIn }: CreateCustomUrlDto) {
+    if (!validateOriginalUrl(originalUrl)) {
+      throw new BadRequestException('Invalid url', {
+        cause: new Error(),
+        description: 'Provide valid url',
+      });
+    }
+
+    if (new Date(expiresIn).getTime() + 100 * 60 < new Date().getTime()) {
+      throw new BadRequestException('Link can`not expire in the past');
+    }
+
+    const dbUrl = await this.urlModel.findOne({ originalUrl, urlId: customName.split(' ').join('-') });
+    if (dbUrl) {
+      return dbUrl;
+    } else {
+      const { urlId, shortenedUrl } = await this.generateShortenedUrl(customName);
+
+      const newUrl = await this.urlModel.create({
+        originalUrl,
+        shortUrl: shortenedUrl,
+        urlId,
+      });
+
+      if (expiresIn) {
+        newUrl.expiresIn = expiresIn;
+      }
+      if (maxClicks) {
+        newUrl.maxClicks = maxClicks;
+      }
+
+      await newUrl.save();
+
+      return {
+        url: newUrl,
+        message: 'Url successfully shortened',
+      };
+    }
+  }
+
+
+  private async generateShortenedUrl(urlId?: string) {
+    let id: string = '';
+
+    if (!urlId) {
+      id = nanoid();
+    } else {
+      id = urlId.split(' ').join('-');
+    }
+    const shortenedUrl = `${process.env.BASE_URL}/${id}`;
+    return {
+      shortenedUrl,
+      urlId: id,
+    };
   }
 
   async getOriginalUrl(urlId: string) {
@@ -55,7 +108,6 @@ export class UrlsService {
     } else {
       throw new BadRequestException('Something bad happened', {
         cause: new Error(),
-        description: 'Some error description',
       });
     }
   }
