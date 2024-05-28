@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { nanoid } from 'nanoid';
+import * as process from 'process';
 
 import { Url } from '../schemas/url.schema';
 import { validateOriginalUrl } from '../utils/validateOriginalUrl';
@@ -102,7 +103,13 @@ export class UrlsService {
       throw new BadRequestException('Provide id');
     }
     const url = await this.urlModel.findOne({ urlId });
+
+
     if (url) {
+      if (this.isUrlExpiredOrMaxClicksReached(url)) {
+        return `${process.env.FONTEND_URL}/link/error`;
+      }
+
       await this.urlModel.updateOne({ urlId }, { $inc: { clicks: 1 } });
       return url.originalUrl;
     } else {
@@ -110,6 +117,12 @@ export class UrlsService {
         cause: new Error(),
       });
     }
+  }
+
+  isUrlExpiredOrMaxClicksReached(url: Url): boolean {
+    const isExpired = url.expiresIn && new Date(url.expiresIn).getTime() < new Date().getTime();
+    const isMaxClicksReached = url.maxClicks && url.clicks >= url.maxClicks;
+    return isExpired || isMaxClicksReached as boolean;
   }
 
 }
