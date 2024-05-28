@@ -24,6 +24,9 @@ export class Url {
 
   @Prop({ required: false })
   maxClicks: number;
+
+  @Prop({ default: true })
+  isActive: boolean;
 }
 
 export const UrlSchema = SchemaFactory.createForClass(Url);

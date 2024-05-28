@@ -2,11 +2,13 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { nanoid } from 'nanoid';
-import * as process from 'process';
 
 import { Url } from '../schemas/url.schema';
+import { checkExpiration } from '../utils/checkExpiration';
+import { ErrorMessages } from '../utils/strings';
 import { validateOriginalUrl } from '../utils/validateOriginalUrl';
 import { CreateCustomUrlDto } from './dto/create-custom-url.dto';
+import { EditCustomUrlDto } from './dto/edit-custom-url.dto';
 import { ShortenUrlDto } from './dto/shorten-url.dto';
 
 @Injectable()
@@ -42,7 +44,7 @@ export class UrlsService {
     }
   }
 
-  public async createCustomUrl({ originalUrl, customName, maxClicks, expiresIn }: CreateCustomUrlDto) {
+  public async createCustomUrl({ originalUrl, customName, maxClicks, expiresIn, isActive }: CreateCustomUrlDto) {
     if (!validateOriginalUrl(originalUrl)) {
       throw new BadRequestException('Invalid url', {
         cause: new Error(),
@@ -50,7 +52,7 @@ export class UrlsService {
       });
     }
 
-    if (new Date(expiresIn).getTime() + 100 * 60 < new Date().getTime()) {
+    if (checkExpiration(expiresIn)) {
       throw new BadRequestException('Link can`not expire in the past');
     }
 
@@ -71,6 +73,9 @@ export class UrlsService {
       }
       if (maxClicks) {
         newUrl.maxClicks = maxClicks;
+      }
+      if (isActive) {
+        newUrl.isActive = isActive;
       }
 
       await newUrl.save();
@@ -106,7 +111,7 @@ export class UrlsService {
 
 
     if (url) {
-      if (this.isUrlExpiredOrMaxClicksReached(url)) {
+      if (this.isUrlExpiredOrMaxClicksReachedOrActive(url)) {
         return `${process.env.FONTEND_URL}/link/error`;
       }
 
@@ -119,10 +124,63 @@ export class UrlsService {
     }
   }
 
-  isUrlExpiredOrMaxClicksReached(url: Url): boolean {
+  public isUrlExpiredOrMaxClicksReachedOrActive(url: Url): boolean {
     const isExpired = url.expiresIn && new Date(url.expiresIn).getTime() < new Date().getTime();
     const isMaxClicksReached = url.maxClicks && url.clicks >= url.maxClicks;
-    return isExpired || isMaxClicksReached as boolean;
+    const isActive = url.isActive && !url.isActive;
+    return isExpired || isMaxClicksReached || isActive as boolean;
+  }
+
+  public async changeUrlStatus(urlId: string) {
+
+    const url = await this.urlModel.findOne({ urlId });
+    if (!url) {
+      throw new BadRequestException(ErrorMessages['404'], { description: 'Can not find URL according to provided url' });
+    }
+    url.isActive = !url.isActive;
+    await url.save({ validateBeforeSave: false });
+
+    return {
+      url,
+      message: 'Url status successfully changed',
+    };
+  }
+
+  public async editCustomUrl({ newUrlId, newMaxClicks, newExpiresIn, urlId, newOriginalUrl }: EditCustomUrlDto) {
+    if (newOriginalUrl && !validateOriginalUrl(newOriginalUrl)) {
+      throw new BadRequestException('Invalid url', {
+        cause: new Error(),
+        description: 'Provide valid url',
+      });
+    }
+
+    if (checkExpiration(newExpiresIn)) {
+      throw new BadRequestException('Link can`not expire in the past');
+    }
+
+    const url = await this.urlModel.findOne({ urlId });
+    if (!url) {
+      throw new BadRequestException(ErrorMessages['404'], { description: 'Can not find URL according to provided url' });
+    }
+
+    if(newExpiresIn){
+      url.expiresIn = newExpiresIn;
+    }
+    if (newOriginalUrl) {
+      url.originalUrl = newOriginalUrl;
+    }
+    if (newUrlId) {
+      url.urlId = newUrlId;
+    }
+    if (newMaxClicks) {
+      url.maxClicks = newMaxClicks;
+    }
+    await url.save({ validateBeforeSave: false });
+
+    return {
+      url,
+      message: 'Url has been successfully updated!',
+    };
   }
 
 }

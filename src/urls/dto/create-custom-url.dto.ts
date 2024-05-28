@@ -1,4 +1,4 @@
-import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateCustomUrlDto {
 
@@ -17,4 +17,7 @@ export class CreateCustomUrlDto {
   @IsNumber()
   maxClicks: number;
 
+  @IsOptional()
+  @IsBoolean()
+  isActive: boolean;
 }

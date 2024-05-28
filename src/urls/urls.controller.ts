@@ -6,12 +6,14 @@ import {
   HttpStatus,
   InternalServerErrorException,
   Param,
+  Patch,
   Post,
   Redirect,
 } from '@nestjs/common';
 
 import { ErrorMessages } from '../utils/strings';
 import { CreateCustomUrlDto } from './dto/create-custom-url.dto';
+import { EditCustomUrlDto } from './dto/edit-custom-url.dto';
 import { ShortenUrlDto } from './dto/shorten-url.dto';
 import { UrlsService } from './urls.service';
 
@@ -38,6 +40,32 @@ export class UrlsController {
   async createCustomUrl(@Body() createCustomUrlDto: CreateCustomUrlDto) {
     try {
       return this.urlsService.createCustomUrl(createCustomUrlDto);
+    } catch (e) {
+      throw new InternalServerErrorException(ErrorMessages.SmthWentWrong, {
+        cause: e,
+      });
+    }
+  }
+
+
+  @Patch('/:urlId/change-status')
+  @HttpCode(HttpStatus.CREATED)
+  async changeUrlStatus(@Param('urlId') urlId: string) {
+    try {
+      return this.urlsService.changeUrlStatus(urlId);
+    } catch (e) {
+      throw new InternalServerErrorException(ErrorMessages.SmthWentWrong, {
+        cause: e,
+      });
+    }
+  }
+
+
+  @Patch('edit-custom-url')
+  @HttpCode(HttpStatus.CREATED)
+  async editCustomUrl(@Body() editCustomUrlDto: EditCustomUrlDto) {
+    try {
+      return this.urlsService.editCustomUrl(editCustomUrlDto);
     } catch (e) {
       throw new InternalServerErrorException(ErrorMessages.SmthWentWrong, {
         cause: e,
