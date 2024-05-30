@@ -99,21 +99,23 @@ describe('UrlsController', () => {
         originalUrl: 'dsadsadsa',
         maxClicks: 10,
         clicks: 1,
+        isActive: true,
       };
-      const result = service.isUrlExpiredOrMaxClicksReached(expiredUrl);
+      const result = service.isUrlExpiredOrMaxClicksReachedOrActive(expiredUrl);
       expect(result).toBe(true);
     });
 
     it('should return true if max clicks are reached', () => {
-      const maxClickedUrl = {
+      const maxClickedUrl: Url = {
         urlId: 'dsads',
         shortUrl: 'asdasdsad',
         originalUrl: 'dsadsadsa',
         expiresIn: new Date(Date.now() + 1000).toISOString(),
         maxClicks: 5,
         clicks: 5,
+        isActive: true,
       };
-      const result = service.isUrlExpiredOrMaxClicksReached(maxClickedUrl);
+      const result = service.isUrlExpiredOrMaxClicksReachedOrActive(maxClickedUrl);
       expect(result).toBe(true);
     });
 
@@ -125,8 +127,9 @@ describe('UrlsController', () => {
         expiresIn: new Date(Date.now() + 1000).toISOString(),
         maxClicks: 5,
         clicks: 4,
+        isActive: true,
       };
-      const result = service.isUrlExpiredOrMaxClicksReached(validUrl);
+      const result = service.isUrlExpiredOrMaxClicksReachedOrActive(validUrl);
       expect(result).toBe(false);
     });
   });

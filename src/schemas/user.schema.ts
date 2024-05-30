@@ -3,6 +3,8 @@ import * as bcrypt from 'bcrypt';
 import { IsStrongPassword } from 'class-validator';
 import mongoose, { Document } from 'mongoose';
 
+import { Roles } from '../types/User';
+import { Subscription } from './subscription.schema';
 import { Url } from './url.schema';
 
 
@@ -17,6 +19,7 @@ export class User {
       validator: (value: string) => /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/.test(value),
       message: 'Invalid email format',
     },
+    unique: true,
   })
   email: string;
 
@@ -60,7 +63,14 @@ export class User {
   @Prop({ type: mongoose.Types.ObjectId, default: [], ref: 'Url' })
   createdUrls: Url[];
 
-  // subscriptionPlan: ,
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Subscription', required: false })
+  subscription: Subscription;
+
+  @Prop({ required: [true, 'Roles is required'], enum: Roles, default: Roles.USER })
+  role: Roles;
+
+  @Prop({ default: false })
+  isConfirmed: boolean;
 
   createPasswordResetToken: () => Promise<string>;
 

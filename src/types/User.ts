@@ -1,5 +1,10 @@
 export enum Roles {
-  free = 'Free',
-  admin = 'Admin',
-  premium = 'Premium'
+  USER = 'User',
+  ADMIN = 'Admin',
+}
+
+
+export interface FindUser {
+  _id?: string,
+  email?: string
 }
