@@ -12,7 +12,7 @@ export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {
   }
 
-  public async createUser({ name, surname, password, email }: CreateUserDto): Promise<UserDocument | Error> {
+  public async createUser({ name, surname, password, email }: CreateUserDto): Promise<UserDocument> {
     const dbUser = await this.findUser({ email });
     if (dbUser) {
       throw new BadRequestException('User with this email already exists!');
@@ -35,10 +35,10 @@ export class UsersService {
 
   public async findUser({ email, _id }: FindUser) {
     if (email) {
-      return this.userModel.findOne({ email }).populate('Subscription Url');
+      return this.userModel.findOne({ email }).populate('subscription url');
     }
     if (_id) {
-      return mongoose.Types.ObjectId.isValid(_id) && this.userModel.findById(_id).populate('Subscription Url');
+      return mongoose.Types.ObjectId.isValid(_id) && this.userModel.findById(_id).populate('subscription url');
     }
   }
 

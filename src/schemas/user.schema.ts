@@ -45,7 +45,6 @@ export class User {
   @IsStrongPassword()
   password: string;
 
-
   @Prop({ default: '' })
   confirmationToken: string;
 
