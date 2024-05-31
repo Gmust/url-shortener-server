@@ -4,6 +4,7 @@ import mongoose, { Model } from 'mongoose';
 
 import { User, UserDocument } from '../schemas/user.schema';
 import { FindUser } from '../types/User';
+import { AddUrlToSavedDto } from './dto/add-url-to-saved.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
@@ -40,6 +41,17 @@ export class UsersService {
     if (_id) {
       return mongoose.Types.ObjectId.isValid(_id) && this.userModel.findById(_id).populate('subscription').populate('createdUrls');
     }
+  }
+
+  public async addUrlToSaved({ url, _id }: AddUrlToSavedDto) {
+    const user = await this.userModel.findById(_id).populate('url');
+    if (!user) {
+      throw new BadRequestException('Invalid id');
+    }
+    user.createdUrls.push(url);
+    user.save();
+
+    return user;
   }
 
 

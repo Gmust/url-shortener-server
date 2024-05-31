@@ -12,6 +12,8 @@ import { MailingModule } from './mailing/mailing.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { UrlsModule } from './urls/urls.module';
 import { UsersModule } from './users/users.module';
+import { RolesModule } from './roles/roles.module';
+import { RolnestService } from './g/rolnest/rolnest.service';
 
 
 @Module({
@@ -38,9 +40,10 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     MailingModule,
     SubscriptionsModule,
+    RolesModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, RolnestService],
 })
 export class AppModule {
 }

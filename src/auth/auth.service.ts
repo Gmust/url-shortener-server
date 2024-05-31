@@ -101,7 +101,7 @@ export class AuthService {
     }
   }
 
-  private async validateToken(token: string) {
+  public async validateToken(token: string) {
     return this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
   }
 
@@ -189,8 +189,8 @@ export class AuthService {
       user.resetPasswordToken = '';
       await user.save();
       return {
-        message: 'Password was reset successfully!'
-      }
+        message: 'Password was reset successfully!',
+      };
     }
 
   }
