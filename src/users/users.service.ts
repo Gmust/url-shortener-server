@@ -35,10 +35,10 @@ export class UsersService {
 
   public async findUser({ email, _id }: FindUser) {
     if (email) {
-      return this.userModel.findOne({ email }).populate('subscription url');
+      return this.userModel.findOne({ email }).populate('subscription').populate('createdUrls');
     }
     if (_id) {
-      return mongoose.Types.ObjectId.isValid(_id) && this.userModel.findById(_id).populate('subscription url');
+      return mongoose.Types.ObjectId.isValid(_id) && this.userModel.findById(_id).populate('subscription').populate('createdUrls');
     }
   }
 

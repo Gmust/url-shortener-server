@@ -1,7 +1,10 @@
-import { Body, Controller, HttpCode, HttpStatus, InternalServerErrorException, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, Post } from '@nestjs/common';
 
 import { ErrorMessages } from '../utils/strings';
 import { AuthService } from './auth.service';
+import { ConfirmRegistrationDto } from './dto/confirm-registration.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
 
 @Controller('auth')
@@ -21,5 +24,44 @@ export class AuthController {
     }
   }
 
+  @Post('sign-in')
+  @HttpCode(HttpStatus.CREATED)
+  async signIn(@Body() signInDto: SignInDto) {
+    try {
+      return this.authService.signIn(signInDto);
+    } catch (e) {
+      throw new InternalServerErrorException(e, ErrorMessages.SmthWentWrong);
+    }
+  }
+
+  @Post('confirm-registration')
+  @HttpCode(HttpStatus.OK)
+  async confirmRegistration(@Body() confirmRegistrationDto: ConfirmRegistrationDto) {
+    try {
+      return this.authService.confirmAccountRegistration(confirmRegistrationDto);
+    } catch (e) {
+      throw new InternalServerErrorException(e, ErrorMessages.SmthWentWrong);
+    }
+  }
+
+  @Post('refresh-token')
+  @HttpCode(HttpStatus.CREATED)
+  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
+    try {
+      return this.authService.refreshToken(refreshTokenDto);
+    } catch (e) {
+      throw new InternalServerErrorException(e, ErrorMessages.SmthWentWrong);
+    }
+  }
+
+  @Get('get-user-by-token')
+  @HttpCode(HttpStatus.OK)
+  async getUserByToken(@Body() { token }: { token: string }) {
+    try {
+      return this.authService.getUserByToken(token);
+    } catch (e) {
+      throw new InternalServerErrorException(e, ErrorMessages.SmthWentWrong);
+    }
+  }
 
 }
