@@ -4,6 +4,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { google } from 'googleapis';
 
 import { SendConfirmMailDto } from './dto/send-confirmation-link.dto';
+import { SendResetPasswordLinkDto } from './dto/send-reset-password-link.dto';
 
 @Injectable()
 export class MailingService {
@@ -23,10 +24,10 @@ export class MailingService {
     );
 
     oauth2Client.setCredentials({
-      refresh_token: process.env.REFRESH_TOKEN
+      refresh_token: process.env.REFRESH_TOKEN,
     });
 
-    const accessToken:string = await new Promise((resolve, reject) => {
+    const accessToken: string = await new Promise((resolve, reject) => {
       oauth2Client.getAccessToken((err, token) => {
         if (err) {
           console.log(err);
@@ -36,16 +37,16 @@ export class MailingService {
       });
     });
 
-    const transporter = this.mailerService.addTransporter('gmail',{
-      service: "gmail",
+    const transporter = this.mailerService.addTransporter('gmail', {
+      service: 'gmail',
       auth: {
-        type: "OAuth2",
+        type: 'OAuth2',
         user: process.env.EMAIL,
         accessToken,
         clientId: process.env.CLIENT_ID,
         clientSecret: process.env.CLIENT_SECRET,
-        refreshToken: process.env.CLIENT_SECRET
-      }
+        refreshToken: process.env.CLIENT_SECRET,
+      },
     });
 
     return transporter;
@@ -64,6 +65,22 @@ export class MailingService {
         link,
       },
     });
+  }
+
+  public async sendResetPasswordLink({ resetLink, surname, name, email }: SendResetPasswordLinkDto) {
+    await this.setTransport();
+    await this.mailerService.sendMail({
+      transporterName: 'gmail',
+      to: email,
+      subject: 'Password reset',
+      template: 'reset-password-template',
+      context: {
+        resetLink,
+        name,
+        surname,
+      },
+    });
+
   }
 
 }

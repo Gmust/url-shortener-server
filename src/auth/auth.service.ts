@@ -10,7 +10,9 @@ import { Plan } from '../types/Plan';
 import { UsersService } from '../users/users.service';
 import { ErrorMessages } from '../utils/strings';
 import { ConfirmRegistrationDto } from './dto/confirm-registration.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
 
@@ -133,4 +135,63 @@ export class AuthService {
     }
   }
 
+  public async forgotPassword({ email }: ForgotPasswordDto) {
+    const user = await this.userService.findUser({ email });
+
+    if (!user) {
+      throw new BadRequestException('Invalid email');
+    }
+
+    const resetToken = await user.createPasswordResetToken();
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&email=${email}`;
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000 * 2);
+
+    await user.save();
+
+    await this.mailingService.sendResetPasswordLink({
+      name: user.name,
+      surname: user.surname,
+      resetLink,
+      email,
+    });
+
+    return {
+      message: 'Reset link has been sent to your email!',
+    };
+  }
+
+  public async resetPassword({ resetToken, newPassword, email }: ResetPasswordDto) {
+    const user = await this.userService.findUser({ email });
+    if (!user) {
+      throw new BadRequestException('Invalid email');
+    }
+
+    if (resetToken !== user.resetPasswordToken) {
+      throw new BadRequestException('Invalid token');
+    }
+
+    if (await bcrypt.compare(newPassword, user.password)) {
+      throw new BadRequestException('The new password can\'t be the same as the previous one');
+    }
+
+    if (user.resetPasswordExpires! < new Date()) {
+      user.resetPasswordExpires = null;
+      user.resetPasswordToken = '';
+      await user.save({ validateBeforeSave: false });
+      throw new BadRequestException('The time to reset your password is up! ');
+    }
+
+    if (resetToken == user.resetPasswordToken) {
+      user.password = newPassword;
+      user.resetPasswordExpires = null;
+      user.resetPasswordToken = '';
+      await user.save();
+      return {
+        message: 'Password was reset successfully!'
+      }
+    }
+
+  }
 }

@@ -54,11 +54,9 @@ export class User {
   })
   resetPasswordToken: string;
 
-  @Prop({
-    type: Date,
-  })
-  resetPasswordExpires: Date;
-
+  @Prop({ type: mongoose.Schema.Types.Date, default: null })
+  resetPasswordExpires: Date | null;
+  
   @Prop({ type: mongoose.Types.ObjectId, default: [], ref: 'Url' })
   createdUrls: Url[];
 

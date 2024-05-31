@@ -3,7 +3,9 @@ import { Body, Controller, Get, HttpCode, HttpStatus, InternalServerErrorExcepti
 import { ErrorMessages } from '../utils/strings';
 import { AuthService } from './auth.service';
 import { ConfirmRegistrationDto } from './dto/confirm-registration.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
 
@@ -59,6 +61,26 @@ export class AuthController {
   async getUserByToken(@Body() { token }: { token: string }) {
     try {
       return this.authService.getUserByToken(token);
+    } catch (e) {
+      throw new InternalServerErrorException(e, ErrorMessages.SmthWentWrong);
+    }
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    try {
+      return this.authService.forgotPassword(forgotPasswordDto);
+    } catch (e) {
+      throw new InternalServerErrorException(e, ErrorMessages.SmthWentWrong);
+    }
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.ACCEPTED)
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    try {
+      return this.authService.resetPassword(resetPasswordDto);
     } catch (e) {
       throw new InternalServerErrorException(e, ErrorMessages.SmthWentWrong);
     }
