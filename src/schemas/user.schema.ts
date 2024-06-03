@@ -3,7 +3,7 @@ import * as bcrypt from 'bcrypt';
 import { IsStrongPassword } from 'class-validator';
 import mongoose, { Document } from 'mongoose';
 
-import { Roles } from '../types/User';
+import { RolesEnum } from '../types/User';
 import { Subscription } from './subscription.schema';
 import { Url } from './url.schema';
 
@@ -56,15 +56,15 @@ export class User {
 
   @Prop({ type: mongoose.Schema.Types.Date, default: null })
   resetPasswordExpires: Date | null;
-  
-  @Prop({ type: mongoose.Types.ObjectId, default: [], ref: 'Url' })
-  createdUrls: Url[];
+
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Url', default: [] }] })
+  createdUrls: mongoose.Types.ObjectId[];
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Subscription', required: false })
   subscription: Subscription;
 
-  @Prop({ required: [true, 'Roles is required'], enum: Roles, default: Roles.USER })
-  role: Roles;
+  @Prop({ required: [true, 'Roles is required'], enum: RolesEnum, default: RolesEnum.USER })
+  role: RolesEnum;
 
   @Prop({ default: false })
   isConfirmed: boolean;

@@ -43,13 +43,18 @@ export class UsersService {
     }
   }
 
-  public async addUrlToSaved({ url, _id }: AddUrlToSavedDto) {
-    const user = await this.userModel.findById(_id).populate('url');
+  public async addUrlToSaved({ url, _id }: AddUrlToSavedDto): Promise<UserDocument> {
+    const user = await this.userModel.findById(_id);
     if (!user) {
-      throw new BadRequestException('Invalid id');
+      throw new BadRequestException('Invalid user id');
     }
-    user.createdUrls.push(url);
-    user.save();
+
+    if (!url || !url._id) {
+      throw new BadRequestException('Invalid URL object');
+    }
+
+    user.createdUrls.push(url._id as mongoose.Types.ObjectId);
+    await user.save();
 
     return user;
   }

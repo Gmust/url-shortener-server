@@ -20,4 +20,12 @@ export class CreateCustomUrlDto {
   @IsOptional()
   @IsBoolean()
   isActive: boolean;
+
+  @IsNotEmpty()
+  @IsBoolean()
+  saveLink: boolean;
+
+  @IsNotEmpty()
+  userId: string;
+
 }

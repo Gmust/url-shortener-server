@@ -5,7 +5,7 @@ import { Document } from 'mongoose';
 export type UrlDocument = Url & Document;
 
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, _id: true })
 export class Url {
   @Prop({ required: [true, 'Url id is required!'], type: String })
   urlId: string;

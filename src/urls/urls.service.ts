@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { nanoid } from 'nanoid';
 
 import { Url } from '../schemas/url.schema';
+import { UsersService } from '../users/users.service';
 import { checkExpiration } from '../utils/checkExpiration';
 import { ErrorMessages } from '../utils/strings';
 import { validateOriginalUrl } from '../utils/validateOriginalUrl';
@@ -14,7 +15,7 @@ import { ShortenUrlDto } from './dto/shorten-url.dto';
 @Injectable()
 export class UrlsService {
 
-  constructor(@InjectModel(Url.name) private urlModel: Model<Url>) {
+  constructor(@InjectModel(Url.name) private urlModel: Model<Url>, private usersService: UsersService) {
   }
 
   public async shortenUrl({ originalUrl }: ShortenUrlDto) {
@@ -44,7 +45,16 @@ export class UrlsService {
     }
   }
 
-  public async createCustomUrl({ originalUrl, customName, maxClicks, expiresIn, isActive }: CreateCustomUrlDto) {
+  public async createCustomUrl({
+                                 originalUrl,
+                                 customName,
+                                 maxClicks,
+                                 expiresIn,
+                                 isActive,
+                                 saveLink,
+                                 userId,
+                               }: CreateCustomUrlDto) {
+
     if (!validateOriginalUrl(originalUrl)) {
       throw new BadRequestException('Invalid url', {
         cause: new Error(),
@@ -60,6 +70,8 @@ export class UrlsService {
     if (dbUrl) {
       return dbUrl;
     } else {
+
+
       const { urlId, shortenedUrl } = await this.generateShortenedUrl(customName);
 
       const newUrl = await this.urlModel.create({
@@ -79,6 +91,10 @@ export class UrlsService {
       }
 
       await newUrl.save();
+
+      if (saveLink) {
+        await this.usersService.addUrlToSaved({ url: newUrl, _id: userId });
+      }
 
       return {
         url: newUrl,
@@ -163,7 +179,7 @@ export class UrlsService {
       throw new BadRequestException(ErrorMessages['404'], { description: 'Can not find URL according to provided url' });
     }
 
-    if(newExpiresIn){
+    if (newExpiresIn) {
       url.expiresIn = newExpiresIn;
     }
     if (newOriginalUrl) {

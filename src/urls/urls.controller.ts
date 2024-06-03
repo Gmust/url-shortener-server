@@ -9,8 +9,13 @@ import {
   Patch,
   Post,
   Redirect,
+  UseGuards,
 } from '@nestjs/common';
 
+import { AuthGuard } from '../auth/guard/auth.guard';
+import { SubscriptionGuard } from '../subscriptions/guard/subscription.guard';
+import { Subscriptions } from '../subscriptions/subscriptions.decorator';
+import { Plan } from '../types/Plan';
 import { ErrorMessages } from '../utils/strings';
 import { CreateCustomUrlDto } from './dto/create-custom-url.dto';
 import { EditCustomUrlDto } from './dto/edit-custom-url.dto';
@@ -35,9 +40,23 @@ export class UrlsController {
     }
   }
 
-  @Post('shorten-custom')
+  // @Post('shorten-custom')
+  // @HttpCode(HttpStatus.CREATED)
+  // async createCustomUrl(@Body() createCustomUrlDto: CreateCustomUrlDto) {
+  //   try {
+  //     return this.urlsService.createCustomUrl(createCustomUrlDto);
+  //   } catch (e) {
+  //     throw new InternalServerErrorException(ErrorMessages.SmthWentWrong, {
+  //       cause: e,
+  //     });
+  //   }
+  // }
+
+  @Subscriptions(Plan.PREMIUM, Plan.ADMIN)
+  @UseGuards(AuthGuard, SubscriptionGuard)
   @HttpCode(HttpStatus.CREATED)
-  async createCustomUrl(@Body() createCustomUrlDto: CreateCustomUrlDto) {
+  @Post('shorten-custom')
+  async createCustomUrlForUser(@Body() createCustomUrlDto: CreateCustomUrlDto) {
     try {
       return this.urlsService.createCustomUrl(createCustomUrlDto);
     } catch (e) {
@@ -83,5 +102,6 @@ export class UrlsController {
       throw new InternalServerErrorException(ErrorMessages.SmthWentWrong, { cause: e });
     }
   }
+
 
 }

@@ -9,11 +9,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { MailingModule } from './mailing/mailing.module';
+import { RolesModule } from './roles/roles.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { UrlsModule } from './urls/urls.module';
 import { UsersModule } from './users/users.module';
-import { RolesModule } from './roles/roles.module';
-import { RolnestService } from './g/rolnest/rolnest.service';
 
 
 @Module({
@@ -43,7 +42,7 @@ import { RolnestService } from './g/rolnest/rolnest.service';
     RolesModule,
   ],
   controllers: [AppController],
-  providers: [AppService, RolnestService],
+  providers: [AppService],
 })
 export class AppModule {
 }

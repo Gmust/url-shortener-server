@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 
 import { AuthGuard } from '../auth/guard/auth.guard';
-import { Roles as RolesEnum } from '../types/User';
+import { RolesEnum as RolesEnum } from '../types/User';
 import { ErrorMessages } from '../utils/strings';
 import { ChangeRoleDto } from './dto/change-role.dto';
 import { RoleGuard } from './guard/role.guard';

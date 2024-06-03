@@ -1,12 +1,12 @@
 import { IsEnum, IsNotEmpty } from 'class-validator';
 
-import { Roles } from '../../types/User';
+import { RolesEnum } from '../../types/User';
 
 export class ChangeRoleDto {
 
   @IsNotEmpty()
-  @IsEnum(Roles)
-  newRole: Roles;
+  @IsEnum(RolesEnum)
+  newRole: RolesEnum;
 
   @IsNotEmpty()
   _id: string;

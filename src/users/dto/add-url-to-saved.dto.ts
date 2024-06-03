@@ -1,15 +1,15 @@
-import { IsNotEmpty } from 'class-validator';
-import mongoose from 'mongoose';
+import { IsMongoId, IsNotEmpty } from 'class-validator';
 
-import { Url } from '../../schemas/url.schema';
+import { UrlDocument } from '../../schemas/url.schema';
 
 
 export class AddUrlToSavedDto {
 
   @IsNotEmpty()
-  _id: mongoose.Types.ObjectId;
+  @IsMongoId()
+  _id: string;
 
   @IsNotEmpty()
-  url: Url;
+  url: UrlDocument;
 
 }
