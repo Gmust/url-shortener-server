@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -13,9 +14,13 @@ import {
 } from '@nestjs/common';
 
 import { AuthGuard } from '../auth/guard/auth.guard';
+import { RoleGuard } from '../roles/guard/role.guard';
+import { Roles } from '../roles/roles.decorator';
 import { SubscriptionGuard } from '../subscriptions/guard/subscription.guard';
 import { Subscriptions } from '../subscriptions/subscriptions.decorator';
 import { Plan } from '../types/Plan';
+import { RolesEnum } from '../types/User';
+import { RemoveLinkFromListDto } from '../users/dto/remove-link-from-list.dto';
 import { ErrorMessages } from '../utils/strings';
 import { CreateCustomUrlDto } from './dto/create-custom-url.dto';
 import { EditCustomUrlDto } from './dto/edit-custom-url.dto';
@@ -98,6 +103,18 @@ export class UrlsController {
     try {
       const url = await this.urlsService.getOriginalUrl(urlId);
       return { url };
+    } catch (e) {
+      throw new InternalServerErrorException(ErrorMessages.SmthWentWrong, { cause: e });
+    }
+  }
+
+  @Roles(RolesEnum.ADMIN, RolesEnum.SUPPORT)
+  @Subscriptions(Plan.PREMIUM, Plan.ADMIN)
+  @UseGuards(AuthGuard, RoleGuard, SubscriptionGuard)
+  @Delete('/remove-link')
+  async removeLink(@Body() removeLinkFromListDto: RemoveLinkFromListDto) {
+    try {
+      return this.urlsService.removeUrl(removeLinkFromListDto);
     } catch (e) {
       throw new InternalServerErrorException(ErrorMessages.SmthWentWrong, { cause: e });
     }

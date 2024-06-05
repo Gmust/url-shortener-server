@@ -6,6 +6,7 @@ import { User, UserDocument } from '../schemas/user.schema';
 import { FindUser } from '../types/User';
 import { AddUrlToSavedDto } from './dto/add-url-to-saved.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { RemoveLinkFromListDto } from './dto/remove-link-from-list.dto';
 
 @Injectable()
 export class UsersService {
@@ -60,4 +61,23 @@ export class UsersService {
   }
 
 
+  public async removeLinkFromUserList({ userId, linkId }: RemoveLinkFromListDto) {
+    const user = await this.userModel.findById(userId);
+
+    if (!user) {
+      throw new BadRequestException('Invalid user id');
+    }
+
+    const updatedUrlsList = user.createdUrls.filter((urlId) => String(urlId) !== linkId);
+
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      userId,
+      { $set: { createdUrls: updatedUrlsList } },
+      { new: true }
+    );
+
+    return updatedUser;
+  }
+
 }
+

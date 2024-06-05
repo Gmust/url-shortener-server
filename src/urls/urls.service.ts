@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { nanoid } from 'nanoid';
 
 import { Url } from '../schemas/url.schema';
+import { RemoveLinkFromListDto } from '../users/dto/remove-link-from-list.dto';
 import { UsersService } from '../users/users.service';
 import { checkExpiration } from '../utils/checkExpiration';
 import { ErrorMessages } from '../utils/strings';
@@ -128,7 +129,7 @@ export class UrlsService {
 
     if (url) {
       if (this.isUrlExpiredOrMaxClicksReachedOrActive(url)) {
-        return `${process.env.FONTEND_URL}/link/error`;
+        return `${process.env.FRONTEND_URL}/link/error`;
       }
 
       await this.urlModel.updateOne({ urlId }, { $inc: { clicks: 1 } });
@@ -196,6 +197,23 @@ export class UrlsService {
     return {
       url,
       message: 'Url has been successfully updated!',
+    };
+  }
+
+  public async removeUrl({ linkId, userId }: RemoveLinkFromListDto) {
+    const urlDb = await this.urlModel.findById(linkId);
+    if (!urlDb) {
+      throw new BadRequestException('Invalid url id');
+    }
+    const updatedUser = await this.usersService.removeLinkFromUserList({ userId, linkId });
+    if (!updatedUser) {
+      throw new BadRequestException(ErrorMessages.SmthWentWrong);
+    }
+
+    await this.urlModel.findOneAndDelete({ _id: urlDb._id }, { new: true });
+
+    return {
+      message: 'Link successfully deleted!',
     };
   }
 
