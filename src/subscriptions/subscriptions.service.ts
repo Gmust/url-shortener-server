@@ -3,9 +3,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import Stripe from 'stripe';
 
+import { MailingService } from '../mailing/mailing.service';
 import { Subscription, SubscriptionDocument } from '../schemas/subscription.schema';
 import { UsersService } from '../users/users.service';
 import { checkExpiration } from '../utils/checkExpiration';
+import { emailTexts } from '../utils/strings';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { PayForSubscriptionDto } from './dto/pay-for-subscription.dto';
 
@@ -14,13 +16,18 @@ export class SubscriptionsService {
   private stripe;
 
 
-  constructor(@InjectModel(Subscription.name) private subscriptionModel: Model<Subscription>, private usersService: UsersService) {
+  constructor(
+    @InjectModel(Subscription.name) private subscriptionModel: Model<Subscription>,
+    private usersService: UsersService,
+    private mailingService: MailingService,
+  ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
       apiVersion: '2024-04-10',
     });
   }
 
   public async createNewSubscription({ startDate, plan }: CreateSubscriptionDto) {
+
     return this.subscriptionModel.create({ plan, startDate });
   }
 
@@ -36,8 +43,12 @@ export class SubscriptionsService {
       throw new BadRequestException('Invalid subscription id');
     }
 
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 30);
+
     subscription.plan = plan;
     subscription.startDate = new Date(startDate);
+    subscription.endDate = endDate;
 
     await subscription.save({ validateBeforeSave: false });
 
@@ -69,5 +80,29 @@ export class SubscriptionsService {
     });
 
     return session.id;
+  }
+
+  public async notifyUsersBeforeSevenDays() {
+
+    const currentDate = new Date();
+    const targetDate = new Date(currentDate.setDate(currentDate.getDate() + 7));
+    targetDate.setHours(0, 0, 0, 0);
+
+    const subscriptions = await this.subscriptionModel.find({
+      endDate: {
+        $gte: targetDate,
+        $lt: new Date(targetDate.getTime() + 24 * 60 * 60 * 1000),
+      },
+    }).populate('user');
+
+    subscriptions.map(async (subscription) =>
+      this.mailingService.sendNotificationEmail({
+        subject: 'Subscription reminder',
+        emailText: emailTexts.SubscriptionReminder,
+        email: subscription.user.email,
+        template: 'subscription-reminder-template',
+      }),
+    );
+
   }
 }

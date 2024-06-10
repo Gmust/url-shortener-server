@@ -34,6 +34,9 @@ export class UsersService {
     return newUser;
   }
 
+  public async getUsersList() {
+    return this.userModel.find().populate('subscription');
+  }
 
   public async findUser({ email, _id }: FindUser) {
     if (email) {
@@ -73,7 +76,7 @@ export class UsersService {
     const updatedUser = await this.userModel.findByIdAndUpdate(
       userId,
       { $set: { createdUrls: updatedUrlsList } },
-      { new: true }
+      { new: true },
     );
 
     return updatedUser;

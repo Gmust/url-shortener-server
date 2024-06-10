@@ -1,4 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, InternalServerErrorException, Post, UseGuards } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { AuthGuard } from '../auth/guard/auth.guard';
 import { ErrorMessages } from '../utils/strings';
@@ -31,6 +32,12 @@ export class SubscriptionsController {
     } catch (e) {
       throw new InternalServerErrorException(ErrorMessages.SmthWentWrong);
     }
+  }
+
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async notifyUsersBeforeSevenDays() {
+    return this.subscriptionsService.notifyUsersBeforeSevenDays();
   }
 
 }

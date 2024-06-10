@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
 import { Plan } from '../types/Plan';
+import { User } from './user.schema';
 
 
 export type SubscriptionDocument = Subscription & Document;
@@ -26,6 +27,10 @@ export class Subscription {
     },
   })
   endDate: Date;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
+  user: User;
+
 }
 
 

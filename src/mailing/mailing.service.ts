@@ -4,6 +4,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { google } from 'googleapis';
 
 import { SendConfirmMailDto } from './dto/send-confirmation-link.dto';
+import { SendNotificationDto } from './dto/send-notification.dto';
 import { SendResetPasswordLinkDto } from './dto/send-reset-password-link.dto';
 
 @Injectable()
@@ -80,7 +81,20 @@ export class MailingService {
         surname,
       },
     });
+  }
 
+  public async sendNotificationEmail({ email, template, emailText, subject }: SendNotificationDto) {
+    await this.setTransport();
+    await this.mailerService.sendMail({
+      transporterName: 'gmail',
+      to: email,
+      subject: 'Password reset',
+      template: template,
+      context: {
+        emailText,
+        subject,
+      },
+    });
   }
 
 }
