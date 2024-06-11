@@ -13,6 +13,7 @@ import { RolesModule } from './roles/roles.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { UrlsModule } from './urls/urls.module';
 import { UsersModule } from './users/users.module';
+import { SupportChatModule } from './support-chat/support-chat.module';
 
 
 @Module({
@@ -40,6 +41,7 @@ import { UsersModule } from './users/users.module';
     MailingModule,
     SubscriptionsModule,
     RolesModule,
+    SupportChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

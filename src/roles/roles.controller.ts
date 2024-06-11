@@ -33,5 +33,7 @@ export class RolesController {
       throw new InternalServerErrorException(ErrorMessages.SmthWentWrong);
     }
   }
-
 }
+
+//TODO  create online chat with support
+//TODO  give more functions for admin

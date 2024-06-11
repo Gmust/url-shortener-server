@@ -69,6 +69,9 @@ export class User {
   @Prop({ default: false })
   isConfirmed: boolean;
 
+  @Prop({ type: [{ type: mongoose.Types.ObjectId, ref: 'SupportChat', default: [] }] })
+  supportChats: mongoose.Types.ObjectId[];
+
   createPasswordResetToken: () => Promise<string>;
 
   createConfirmationToken: () => Promise<string>;

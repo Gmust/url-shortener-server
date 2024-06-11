@@ -1,24 +1,24 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, ObjectId } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
 
 export type MessageDocument = Message & Document
 
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: { createdAt: true } })
 export class Message {
 
   @Prop({ required: [true, 'Sender is required'], ref: 'User' })
-  Sender: ObjectId;
+  sender: mongoose.Types.ObjectId;
 
   @Prop({ required: [true, 'Recipient is required'], ref: 'User' })
-  recipient: ObjectId;
+  recipient: mongoose.Types.ObjectId;
 
   @Prop({ required: [true, 'Content is required'] })
   content: string;
 
   @Prop({ required: false, ref: 'SupportChat' })
-  supportChat: ObjectId;
+  supportChat: mongoose.Types.ObjectId;
 }
 
 
