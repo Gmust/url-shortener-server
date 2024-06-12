@@ -3,7 +3,6 @@ export enum ChatStatus {
   INACTIVE = 'Inactive',     // Chat is inactive, no agents are available.
   PENDING = 'Pending',       // Chat request is pending, waiting for an agent to respond.
   CLOSED = 'Closed',         // Chat has been closed by either the user or the agent.
-  BUSY = 'Busy',             // All agents are currently busy; user is in queue.
 }
 
 
