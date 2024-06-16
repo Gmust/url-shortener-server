@@ -9,6 +9,7 @@ import { UsersService } from '../users/users.service';
 import { ErrorMessages } from '../utils/strings';
 import { CreateNewChatDto } from './dto/create-new-chat.dto';
 import { CreateNewMessageDto } from './dto/create-new-message.dto';
+import { DeleteMessageDto } from './dto/delete-message.dto';
 import { EditTextMessageDto } from './dto/edit-text-message.dto';
 import { GetChatDto } from './dto/get-chat.dto';
 import { GetMessageDto } from './dto/get-message.dto';
@@ -127,11 +128,15 @@ export class SupportChatService {
   async editMessage({ messageId, content }: EditTextMessageDto) {
     const message = await this.getMessage({ messageId });
     message.content = content;
-    message.isUpdated = true
+    message.isUpdated = true;
   }
 
-  async deleteMessage() {
+  async deleteMessage({ messageId }: DeleteMessageDto) {
+    await this.messageModel.deleteOne({ _id: messageId });
 
+    return {
+      message: 'Message successfully deleted',
+    };
   }
 
   async deleteClosedChats() {
