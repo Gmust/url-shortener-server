@@ -4,6 +4,7 @@ import mongoose, { Model } from 'mongoose';
 
 import { User, UserDocument } from '../schemas/user.schema';
 import { FindUser } from '../types/User';
+import { ErrorMessages } from '../utils/strings';
 import { AddUrlToSavedDto } from './dto/add-url-to-saved.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { RemoveLinkFromListDto } from './dto/remove-link-from-list.dto';
@@ -40,10 +41,18 @@ export class UsersService {
 
   public async findUser({ email, _id }: FindUser) {
     if (email) {
-      return this.userModel.findOne({ email }).populate('subscription').populate('createdUrls');
+      const user = this.userModel.findOne({ email }).populate('subscription').populate('createdUrls');
+      if (!user) {
+        throw new BadRequestException(ErrorMessages['404']);
+      }
+      return user;
     }
     if (_id) {
-      return mongoose.Types.ObjectId.isValid(_id) && this.userModel.findById(_id).populate('subscription').populate('createdUrls');
+      const user = mongoose.Types.ObjectId.isValid(_id) && this.userModel.findById(_id).populate('subscription').populate('createdUrls');
+      if (!user) {
+        throw new BadRequestException(ErrorMessages['404']);
+      }
+      return user;
     }
   }
 

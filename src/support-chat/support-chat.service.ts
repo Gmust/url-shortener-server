@@ -8,6 +8,10 @@ import { ChatStatus } from '../types/SupportChat';
 import { UsersService } from '../users/users.service';
 import { ErrorMessages } from '../utils/strings';
 import { CreateNewChatDto } from './dto/create-new-chat.dto';
+import { CreateNewMessageDto } from './dto/create-new-message.dto';
+import { EditTextMessageDto } from './dto/edit-text-message.dto';
+import { GetChatDto } from './dto/get-chat.dto';
+import { GetMessageDto } from './dto/get-message.dto';
 import { TakeSupportChatDto } from './dto/take-support-chat.dto';
 import { UpdateChatStatusDto } from './dto/update-chat-status.dto';
 
@@ -21,6 +25,22 @@ export class SupportChatService {
   ) {
   }
 
+
+  async getSupportChat({ chatId }: GetChatDto) {
+    const supportChat = await this.supportChatModel.findById(chatId);
+    if (!supportChat) {
+      throw new BadRequestException('Invalid chat id');
+    }
+    return supportChat;
+  }
+
+  async getMessage({ messageId }: GetMessageDto) {
+    const message = await this.messageModel.findById(messageId);
+    if (!message) {
+      throw new BadRequestException('Invalid message id');
+    }
+    return message;
+  }
 
   async createNewChat({ userId, topic }: CreateNewChatDto) {
     const user = await this.userService.findUser({ _id: userId });
@@ -76,6 +96,46 @@ export class SupportChatService {
       message: 'Chat status successfully updated',
       updatedChat: chat,
     };
+  }
+
+  async createNewMessage({ messageType, supportChatId, recipientId, senderId, content }: CreateNewMessageDto) {
+    const recipient = await this.userService.findUser({ _id: recipientId });
+    const sender = await this.userService.findUser({ _id: senderId });
+    const supportChat = await this.getSupportChat({ chatId: supportChatId });
+
+    const newMessage = await this.messageModel.create({
+      messageType,
+      sender,
+      recipient,
+      supportChat,
+      content,
+    });
+
+    if (!newMessage) {
+      throw new BadRequestException(ErrorMessages.SmthWentWrong);
+    }
+
+    await this.supportChatModel.findOneAndUpdate(
+      { _id: supportChatId },
+      { $push: { messages: newMessage._id } },
+      { new: true },
+    );
+
+    return newMessage;
+  }
+
+  async editMessage({ messageId, content }: EditTextMessageDto) {
+    const message = await this.getMessage({ messageId });
+    message.content = content;
+    message.isUpdated = true
+  }
+
+  async deleteMessage() {
+
+  }
+
+  async deleteClosedChats() {
+    return this.supportChatModel.deleteMany({ status: ChatStatus.CLOSED });
   }
 
 }

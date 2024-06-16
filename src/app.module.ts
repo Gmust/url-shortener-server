@@ -11,9 +11,9 @@ import { AuthModule } from './auth/auth.module';
 import { MailingModule } from './mailing/mailing.module';
 import { RolesModule } from './roles/roles.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { SupportChatModule } from './support-chat/support-chat.module';
 import { UrlsModule } from './urls/urls.module';
 import { UsersModule } from './users/users.module';
-import { SupportChatModule } from './support-chat/support-chat.module';
 
 
 @Module({
