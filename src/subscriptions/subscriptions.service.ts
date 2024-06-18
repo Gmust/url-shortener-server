@@ -26,9 +26,9 @@ export class SubscriptionsService {
     });
   }
 
-  public async createNewSubscription({ startDate, plan }: CreateSubscriptionDto) {
+  public async createNewSubscription({ startDate, plan, user }: CreateSubscriptionDto) {
 
-    return this.subscriptionModel.create({ plan, startDate });
+    return this.subscriptionModel.create({ plan, startDate, user });
   }
 
   public async updateUserSubscription({ startDate, plan, email }: PayForSubscriptionDto) {

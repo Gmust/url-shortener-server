@@ -62,11 +62,12 @@ export class AuthService {
 
 
   public async signUp({ name, surname, password, email }: SignUpDto) {
-    const newUser = await this.userService.createUser({ name, surname, password, email });
+    const newUser = await this.userService.createUser({ name, surname: surname, password, email });
     const confirmationToken = await newUser.createConfirmationToken();
     const newSubscription = await this.subscriptionService.createNewSubscription({
       plan: Plan.FREE,
       startDate: new Date().toISOString(),
+      user: newUser,
     });
 
     const confirmationLink = `${process.env.FRONTEND_URL}/auth/confirm-account?token=${confirmationToken}&email=${newUser.email}`;

@@ -36,7 +36,7 @@ export class SupportChatService {
   }
 
   async getMessage({ messageId }: GetMessageDto) {
-    const message = await this.messageModel.findById(messageId);
+    const message = await this.messageModel.findById(messageId).populate('sender recipient');
     if (!message) {
       throw new BadRequestException('Invalid message id');
     }
@@ -81,6 +81,7 @@ export class SupportChatService {
 
     return {
       message: 'Chat has been successfully taken',
+      chat,
     };
   }
 
@@ -129,6 +130,10 @@ export class SupportChatService {
     const message = await this.getMessage({ messageId });
     message.content = content;
     message.isUpdated = true;
+
+    await message.save();
+
+    return message;
   }
 
   async deleteMessage({ messageId }: DeleteMessageDto) {
@@ -136,6 +141,7 @@ export class SupportChatService {
 
     return {
       message: 'Message successfully deleted',
+      messageId: messageId
     };
   }
 

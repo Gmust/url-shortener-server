@@ -43,7 +43,7 @@ export class SupportChatGateway implements OnGatewayConnection, OnGatewayDisconn
   }
 
   @SubscribeMessage('new-chat-message')
-  handleNewMessage(@MessageBody() payload: CreateNewMessageDto) {
+  handleNewMessage(@MessageBody() payload: CreateNewMessageDto & { _id: string }) {
     const { recipientId } = payload;
     const recipientSocket = this.getUserSocket(recipientId);
     if (recipientSocket) {
@@ -52,10 +52,11 @@ export class SupportChatGateway implements OnGatewayConnection, OnGatewayDisconn
   }
 
   @SubscribeMessage('update-chat-message')
-  editChatMessage(@MessageBody() payload: EditTextMessageDto) {
+  editChatMessage(@MessageBody() payload: EditTextMessageDto & { isUpdated: boolean }) {
     this.server.emit('update-chat-message', {
       messageId: payload.messageId,
       content: payload.content,
+      isEdited: payload.isUpdated,
     });
   }
 
