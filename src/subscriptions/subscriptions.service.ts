@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import Stripe from 'stripe';
@@ -7,7 +7,8 @@ import { MailingService } from '../mailing/mailing.service';
 import { Subscription, SubscriptionDocument } from '../schemas/subscription.schema';
 import { UsersService } from '../users/users.service';
 import { checkExpiration } from '../utils/checkExpiration';
-import { emailTexts } from '../utils/strings';
+import { emailTexts, ErrorMessages } from '../utils/strings';
+import { CancelSubscriptionDto } from './dto/cancel-subscription.dto';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { PayForSubscriptionDto } from './dto/pay-for-subscription.dto';
 
@@ -27,8 +28,31 @@ export class SubscriptionsService {
   }
 
   public async createNewSubscription({ startDate, plan, user }: CreateSubscriptionDto) {
-
     return this.subscriptionModel.create({ plan, startDate, user });
+  }
+
+  public async finalizeSubscription({ startDate, plan, email }: PayForSubscriptionDto) {
+    const user = await this.usersService.findUser({ email });
+    if (!user) {
+      throw new BadRequestException('Invalid email');
+    }
+
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 30);
+
+    const stripeCustomer = await this.stripe.customers.create({ email: user.email });
+    const stripeSubscription = await this.stripe.subscriptions.create({
+      customer: stripeCustomer.id,
+      items: [{ plan: plan }],
+    });
+
+    return this.subscriptionModel.create({
+      plan,
+      startDate: new Date(startDate),
+      endDate,
+      user,
+      stripeSubscriptionId: stripeSubscription.id,
+    });
   }
 
   public async updateUserSubscription({ startDate, plan, email }: PayForSubscriptionDto) {
@@ -83,7 +107,6 @@ export class SubscriptionsService {
   }
 
   public async notifyUsersBeforeSevenDays() {
-
     const currentDate = new Date();
     const targetDate = new Date(currentDate.setDate(currentDate.getDate() + 7));
     targetDate.setHours(0, 0, 0, 0);
@@ -103,6 +126,19 @@ export class SubscriptionsService {
         template: 'subscription-reminder-template',
       }),
     );
+  }
+
+  public async cancelSubscription({ userId }: CancelSubscriptionDto) {
+    const user = await this.usersService.findUser({ _id: userId });
+    const subscription = await this.subscriptionModel.findOne({
+      user: user,
+    });
+
+    if (!subscription) {
+      throw new NotFoundException(ErrorMessages.SmthWentWrong);
+    }
+
 
   }
+
 }

@@ -12,6 +12,7 @@ import {
   Redirect,
   UseGuards,
 } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { AuthGuard } from '../auth/guard/auth.guard';
 import { RoleGuard } from '../roles/guard/role.guard';
@@ -44,18 +45,6 @@ export class UrlsController {
       });
     }
   }
-
-  // @Post('shorten-custom')
-  // @HttpCode(HttpStatus.CREATED)
-  // async createCustomUrl(@Body() createCustomUrlDto: CreateCustomUrlDto) {
-  //   try {
-  //     return this.urlsService.createCustomUrl(createCustomUrlDto);
-  //   } catch (e) {
-  //     throw new InternalServerErrorException(ErrorMessages.SmthWentWrong, {
-  //       cause: e,
-  //     });
-  //   }
-  // }
 
   @Subscriptions(Plan.PREMIUM, Plan.ADMIN)
   @UseGuards(AuthGuard, SubscriptionGuard)
@@ -120,5 +109,13 @@ export class UrlsController {
     }
   }
 
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  deleteAllExpiredLinks() {
+    try {
+      return this.urlsService.deleteAllExpiredLinks();
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
 
 }

@@ -32,16 +32,20 @@ export class UrlsService {
     if (dbUrl) {
       return dbUrl;
     } else {
+      const date = new Date();
+      date.setDate(date.getDate() + 7);
+
       const { urlId, shortenedUrl } = await this.generateShortenedUrl(originalUrl);
       const url = await this.urlModel.create({
         originalUrl: originalUrl,
         shortUrl: shortenedUrl,
         urlId,
+        expiresIn: date.toISOString(),
       });
 
       return {
         url: url,
-        message: 'Url successfully shortened',
+        message: 'Url successfully shortened and will be active for 7 days',
       };
     }
   }
@@ -128,7 +132,7 @@ export class UrlsService {
 
 
     if (url) {
-      if (this.isUrlExpiredOrMaxClicksReachedOrActive(url)) {
+      if (this.isUrlExpiredOrMaxClicksReachedOrActive(url) || url.isActive === false) {
         return `${process.env.FRONTEND_URL}/link/error`;
       }
 
@@ -215,6 +219,12 @@ export class UrlsService {
     return {
       message: 'Link successfully deleted!',
     };
+  }
+
+  public async deleteAllExpiredLinks() {
+    const today = new Date();
+    today.setHours(today.getHours() + 1);
+    await this.urlModel.deleteMany({ expiresIn: { $lt: today } });
   }
 
 }

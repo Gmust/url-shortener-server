@@ -31,6 +31,12 @@ export class Subscription {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   user: User;
 
+  @Prop({
+    required: function() {
+      return this.plan !== Plan.FREE;
+    },
+  })
+  stripeSubscriptionId: string;
 }
 
 

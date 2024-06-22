@@ -40,20 +40,21 @@ export class UsersService {
   }
 
   public async findUser({ email, _id }: FindUser) {
+    let user;
+
+    if (!user) {
+      throw new BadRequestException(ErrorMessages['404']);
+
+    }
+
     if (email) {
-      const user = this.userModel.findOne({ email }).populate('subscription').populate('createdUrls');
-      if (!user) {
-        throw new BadRequestException(ErrorMessages['404']);
-      }
-      return user;
+      user = this.userModel.findOne({ email }).populate('subscription').populate('createdUrls');
     }
     if (_id) {
-      const user = mongoose.Types.ObjectId.isValid(_id) && this.userModel.findById(_id).populate('subscription').populate('createdUrls');
-      if (!user) {
-        throw new BadRequestException(ErrorMessages['404']);
-      }
-      return user;
+      user = mongoose.Types.ObjectId.isValid(_id) && this.userModel.findById(_id).populate('subscription').populate('createdUrls');
     }
+
+    return user;
   }
 
   public async addUrlToSaved({ url, _id }: AddUrlToSavedDto): Promise<UserDocument> {

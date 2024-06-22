@@ -40,4 +40,5 @@ export class SubscriptionsController {
     return this.subscriptionsService.notifyUsersBeforeSevenDays();
   }
 
+
 }
