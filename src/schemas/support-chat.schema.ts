@@ -8,7 +8,7 @@ export type SupportChatDocument = SupportChat & Document
 @Schema()
 export class SupportChat {
 
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }] })
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [], max: 2 }] })
   participants: mongoose.Types.ObjectId[];
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message', default: [] }] })

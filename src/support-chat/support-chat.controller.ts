@@ -69,7 +69,7 @@ export class SupportChatController {
   async takeSupportChat(@Body() takeSupportChatDto: TakeSupportChatDto) {
     try {
       const { chat, message } = await this.supportChatService.takeSupportChat(takeSupportChatDto);
-      await this.supportChatService.updateChatStatus({
+      this.supportChatGateway.handleStatus({
         supportChatId: String(chat._id),
         newStatus: chat.status,
       });
@@ -116,6 +116,7 @@ export class SupportChatController {
         content: newMessage.content,
         senderId: String(newMessage.sender._id),
         recipientId: String(newMessage.recipient._id),
+        chatId: String(newMessage.supportChat._id),
       });
 
       return newMessage;
@@ -136,6 +137,7 @@ export class SupportChatController {
         messageId: String(updatedMessage._id),
         content: updatedMessage.content,
         isUpdated: updatedMessage.isUpdated,
+        chatId: String(updatedMessage.supportChat._id),
       });
 
       return updatedMessage;
@@ -150,8 +152,8 @@ export class SupportChatController {
   @Delete('/message/delete/:id')
   async deleteChatMessage(@Param('id') id: string) {
     try {
-      const { message, messageId } = await this.supportChatService.deleteMessage({ messageId: id });
-      this.supportChatGateway.deleteChatMessage({ messageId });
+      const { message, messageId, chatId } = await this.supportChatService.deleteMessage({ messageId: id });
+      this.supportChatGateway.deleteChatMessage({ messageId, chatId: String(chatId) });
 
       return {
         message,

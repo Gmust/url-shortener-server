@@ -25,7 +25,6 @@ export class SupportChatGateway implements OnGatewayConnection, OnGatewayDisconn
 
   async handleConnection(client: Socket): Promise<any> {
     const id = client.handshake.auth?.id || client.handshake.headers?.id;
-    console.log(id);
     this.userSockets.set(id, client);
   }
 
@@ -43,7 +42,7 @@ export class SupportChatGateway implements OnGatewayConnection, OnGatewayDisconn
   }
 
   @SubscribeMessage('new-chat-message')
-  handleNewMessage(@MessageBody() payload: CreateNewMessageDto & { _id: string }) {
+  handleNewMessage(@MessageBody() payload: CreateNewMessageDto & { _id: string, chatId: string }) {
     const { recipientId } = payload;
     const recipientSocket = this.getUserSocket(recipientId);
     if (recipientSocket) {
@@ -52,18 +51,20 @@ export class SupportChatGateway implements OnGatewayConnection, OnGatewayDisconn
   }
 
   @SubscribeMessage('update-chat-message')
-  editChatMessage(@MessageBody() payload: EditTextMessageDto & { isUpdated: boolean }) {
+  editChatMessage(@MessageBody() payload: EditTextMessageDto & { isUpdated: boolean, chatId: string }) {
     this.server.emit('update-chat-message', {
       messageId: payload.messageId,
       content: payload.content,
       isEdited: payload.isUpdated,
+      chatId: payload.chatId,
     });
   }
 
   @SubscribeMessage('delete-chat-message')
-  deleteChatMessage(@MessageBody() payload: DeleteMessageDto) {
+  deleteChatMessage(@MessageBody() payload: DeleteMessageDto & { chatId: string }) {
     this.server.emit('delete-chat-message', {
       messageId: payload.messageId,
+      chatId: payload.chatId,
     });
   }
 

@@ -36,7 +36,7 @@ export class SupportChatService {
   }
 
   async getMessage({ messageId }: GetMessageDto) {
-    const message = await this.messageModel.findById(messageId).populate('sender recipient');
+    const message = await this.messageModel.findById(messageId).populate('sender recipient supportChat');
     if (!message) {
       throw new BadRequestException('Invalid message id');
     }
@@ -73,6 +73,10 @@ export class SupportChatService {
     const chat = await this.supportChatModel.findById(supportChatId);
     if (!chat) {
       throw new BadRequestException(ErrorMessages['404']);
+    }
+
+    if (chat.participants.find(id => String(id) == supportMemberId)) {
+      throw new BadRequestException('You have already taken this ticket!');
     }
 
     chat.participants.push(supportMember._id);
@@ -137,11 +141,15 @@ export class SupportChatService {
   }
 
   async deleteMessage({ messageId }: DeleteMessageDto) {
-    await this.messageModel.deleteOne({ _id: messageId });
+    const message = await this.messageModel.findOneAndDelete({ _id: messageId }).populate('supportChat');
+    if (!message) {
+      throw new BadRequestException(ErrorMessages.SmthWentWrong);
+    }
 
     return {
       message: 'Message successfully deleted',
-      messageId: messageId
+      messageId: messageId,
+      chatId: message.supportChat._id,
     };
   }
 
