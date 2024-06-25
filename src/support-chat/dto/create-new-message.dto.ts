@@ -37,7 +37,6 @@ export class CreateNewMessageDto {
     description: 'Text message or image',
     example: 'My problem is....'
   })
-  @IsNotEmpty()
   content: any;
 
   @ApiProperty({

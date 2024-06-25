@@ -23,16 +23,27 @@ export class SubscriptionsController {
     }
   }
 
-  @UseGuards(AuthGuard)
+
   @HttpCode(HttpStatus.OK)
-  @Post('update')
-  async updateUserPlan(@Body() payForSubscriptionDto: PayForSubscriptionDto) {
+  @Post('finalize')
+  async finalizeSubscription(@Body() payForSubscriptionDto: PayForSubscriptionDto) {
     try {
-      return this.subscriptionsService.updateUserSubscription(payForSubscriptionDto);
+      return this.subscriptionsService.finalizeSubscription(payForSubscriptionDto);
     } catch (e) {
       throw new InternalServerErrorException(ErrorMessages.SmthWentWrong);
     }
   }
+
+  // @UseGuards(AuthGuard)
+  // @HttpCode(HttpStatus.OK)
+  // @Post('update')
+  // async updateUserPlan(@Body() payForSubscriptionDto: PayForSubscriptionDto) {
+  //   try {
+  //     return this.subscriptionsService.updateUserSubscription(payForSubscriptionDto);
+  //   } catch (e) {
+  //     throw new InternalServerErrorException(ErrorMessages.SmthWentWrong);
+  //   }
+  // }
 
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)

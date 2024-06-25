@@ -9,15 +9,20 @@ import {
   Param,
   Patch,
   Post,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
+import { multerConfig } from '../../multer.config';
 import { AuthGuard } from '../auth/guard/auth.guard';
 import { RoleGuard } from '../roles/guard/role.guard';
 import { Roles } from '../roles/roles.decorator';
 import { SubscriptionGuard } from '../subscriptions/guard/subscription.guard';
 import { Subscriptions } from '../subscriptions/subscriptions.decorator';
+import { MessageType } from '../types/Message';
 import { Plan } from '../types/Plan';
 import { RolesEnum } from '../types/User';
 import { ErrorMessages } from '../utils/strings';
@@ -106,20 +111,43 @@ export class SupportChatController {
   @UseGuards(AuthGuard, SubscriptionGuard)
   @HttpCode(HttpStatus.CREATED)
   @Post('/message')
-  async createNewMessage(@Body() createNewMessageDto: CreateNewMessageDto) {
+  @UseInterceptors(
+    AnyFilesInterceptor(multerConfig),
+  )
+  async createNewMessage(
+    @UploadedFiles() files: Array<Express.Multer.File>,
+    @Body() createNewMessageDto: CreateNewMessageDto,
+  ) {
     try {
-      const newMessage = await this.supportChatService.createNewMessage(createNewMessageDto);
-      this.supportChatGateway.handleNewMessage({
-        _id: String(newMessage._id),
-        supportChatId: String(newMessage.supportChat),
-        messageType: newMessage.messageType,
-        content: newMessage.content,
-        senderId: String(newMessage.sender._id),
-        recipientId: String(newMessage.recipient._id),
-        chatId: String(newMessage.supportChat._id),
-      });
+      if (createNewMessageDto.messageType === MessageType.TEXT) {
+        const newMessage = await this.supportChatService.createNewMessage(createNewMessageDto);
+        this.supportChatGateway.handleNewMessage({
+          _id: String(newMessage._id),
+          supportChatId: String(newMessage.supportChat),
+          messageType: newMessage.messageType,
+          content: newMessage.content,
+          senderId: String(newMessage.sender._id),
+          recipientId: String(newMessage.recipient._id),
+          chatId: String(newMessage.supportChat._id),
+        });
 
-      return newMessage;
+        return newMessage;
+      }
+      if (createNewMessageDto.messageType === MessageType.Image) {
+        createNewMessageDto.content = files[0].filename;
+        const newMessage = await this.supportChatService.createNewMessage(createNewMessageDto);
+        this.supportChatGateway.handleNewMessage({
+          _id: String(newMessage._id),
+          supportChatId: String(newMessage.supportChat),
+          messageType: newMessage.messageType,
+          content: newMessage.content,
+          senderId: String(newMessage.sender._id),
+          recipientId: String(newMessage.recipient._id),
+          chatId: String(newMessage.supportChat._id),
+        });
+
+        return newMessage;
+      }
     } catch (e) {
       throw new InternalServerErrorException(ErrorMessages.SmthWentWrong, e);
     }

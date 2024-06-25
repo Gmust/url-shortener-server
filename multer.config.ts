@@ -5,7 +5,7 @@ import { extname } from 'path';
 
 export const multerConfig: MulterOptions = {
   storage: diskStorage({
-    destination: '/support-chat/images',
+    destination: './uploads/images',
     filename(req: e.Request, file: Express.Multer.File, callback: (error: (Error | null), filename: string) => void) {
       const name = file.originalname.split('.')[0];
       const extension = extname(file.originalname);
